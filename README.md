@@ -59,3 +59,50 @@ Then, here is main.cpp:
 
 2. comment
 '#' is used as comment header.
+
+3. git_repository vs new_git_repository
+git_repository is used when the underlying repository is already bazelized.
+new_git_repository is used when the underlying repository is not bazelized.
+For example, google test is already using Bazel as a build system. To fetch
+it you can simply do:
+
+  git_repository(
+      name = "googletest",
+      commit = "703bd9caab50b139428cea1aaff9974ebee5742e", # google test v1.10.0
+      remote = "https://github.com/google/googletest",
+      shallow_since = "1570114335 -0400",
+  )
+
+  cc_test(
+      name = "tests",
+      timeout = "short",
+      srcs = ["test.cpp"],
+      deps = [
+        "@googletest//:gtest_main", # use googletest as a dependency
+      ],
+  )
+
+https://stackoverflow.com/questions/69182889/bazel-function-git-repository-vs-new-git-repository
+
+4. googletest
+In order to use googletest, put the following in WORKSPACE.
+
+  load(""@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+  http_archive(
+      name = "com_google_googletest",
+      urls = "https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip"
+      strip_prefix = "googletest-609281088cfefc76f9d0ce82e1ff6c30cc3591e5"
+  )
+
+For each test case
+
+  cc_test(
+    name = "compiler_drv_test",
+    size = "small",
+    srcs = ["compiler_drv_test.cpp"],
+    copts = ["-Ilib"]
+    deps = ["@com_google_googletest//:gtest_main", "//lib/ir", "//lib/frontend"],
+  )
+
+visibilty applied to cc_test is the same as cc_binary.
